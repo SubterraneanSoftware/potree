@@ -23,6 +23,13 @@ export class Annotation extends EventDispatcher {
 			this.position = new THREE.Vector3(...args.position);
 		}
 
+		if (!args.gridSystem) {
+			this.gridSystem = args.gridSystem;
+		}
+		else {
+			this.gridSystem = "BritishGrid";
+		}
+
 		this.cameraPosition = (args.cameraPosition instanceof Array)
 			? new THREE.Vector3().fromArray(args.cameraPosition) : args.cameraPosition;
 		this.cameraTarget = (args.cameraTarget instanceof Array)
@@ -40,11 +47,17 @@ export class Annotation extends EventDispatcher {
 		this._expand = false;
 		this.collapseThreshold = [args.collapseThreshold, 100].find(e => e !== undefined);
 
+		this.showAnno = true;
+
 		this.children = [];
 		this.parent = null;
 		this.boundingBox = new THREE.Box3();
 
 		let iconClose = exports.resourcePath + '/icons/close.svg';
+
+		if (this.position != null) {
+			this._gpsPos = this.convertCoords(this.position.x, this.position.y, this.position.z);
+		}
 
 		this.domElement = $(`
 			<div class="annotation" oncontextmenu="return false;">
@@ -55,7 +68,9 @@ export class Annotation extends EventDispatcher {
 					<span class="annotation-description-close">
 						<img src="${iconClose}" width="16px">
 					</span>
-					<span class="annotation-description-content">${this._description}</span>
+					<span class="annotation-description-content">
+						<a href="https://google.com/maps/place/${this._gpsPos}"target="_blank"><img src="${this._description}" width="50%" height="50%"/></a>
+					</span>
 				</div>
 			</div>
 		`);
@@ -97,19 +112,26 @@ export class Annotation extends EventDispatcher {
 			elButton.click(() => action.onclick({annotation: this}));
 		}
 
-		this.elDescriptionClose.hover(
-			e => this.elDescriptionClose.css('opacity', '1'),
-			e => this.elDescriptionClose.css('opacity', '0.5')
-		);
-		this.elDescriptionClose.click(e => this.setHighlighted(false));
-		// this.elDescriptionContent.html(this._description);
+		// this.elDescriptionClose.hover(
+		// 	e => this.elDescriptionClose.css('opacity', '1'),
+		// 	e => this.elDescriptionClose.css('opacity', '0.5')
+		// );
+		this.elDescriptionClose.click(e => {
+			this.showAnno = false;
+			this.setHighlighted(this.showAnno)
+		});
+		
+		// this.domElement.click(e => {
+		// 	this.showAnno = true;
+		// 	this.setHighlighted(this.showAnno);
+		// });
 
 		this.domElement.mouseenter(e => this.setHighlighted(true));
 		this.domElement.mouseleave(e => this.setHighlighted(false));
 
-		this.domElement.on('touchstart', e => {
-			this.setHighlighted(!this.isHighlighted);
-		});
+		// this.domElement.on('touchstart', e => {
+		// 	this.setHighlighted(!this.isHighlighted);
+		// });
 
 		this.display = false;
 		//this.display = true;
@@ -482,7 +504,7 @@ export class Annotation extends EventDispatcher {
 
 	setHighlighted (highlighted) {
 		if (highlighted) {
-			this.domElement.css('opacity', '0.8');
+			// this.domElement.css('opacity', '0.8');
 			this.elTitlebar.css('box-shadow', '0 0 5px #fff');
 			this.domElement.css('z-index', '1000');
 
@@ -492,7 +514,7 @@ export class Annotation extends EventDispatcher {
 				this.elDescription.css('position', 'relative');
 			}
 		} else {
-			this.domElement.css('opacity', '0.5');
+			// this.domElement.css('opacity', '0.5');
 			this.elTitlebar.css('box-shadow', '');
 			this.domElement.css('z-index', '100');
 			this.descriptionVisible = false;
@@ -569,5 +591,35 @@ export class Annotation extends EventDispatcher {
 
 	toString () {
 		return 'Annotation: ' + this._title;
+	}
+
+	convertCoords(x, y, z) {
+		const irishGrid = "+proj=tmerc +lat_0=53.5 +lon_0=-8 +k=1.000035 +x_0=200000 +y_0=250000 +ellps=airy +towgs84=478.8,-125.3,564.6,-1.042,-0.214,-0.631,8.15 +units=m +no_defs";
+		const britishGrid = "+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +datum=OSGB36 +units=m +no_defs +towgs84=446.448,-125.157,542.060,-0.1502,-0.2470,-0.8421,20.4894";
+		const utm30N = "+proj=utm +zone=30 +datum=WGS84 +units=m +no_defs +geoidgrids=egm96_15.gsf";
+		const aberdeenGrid = "+proj=utm +zone=30 +datum=WGS84 +units=m +no_defs +geoidgrids=egm96_16.gsf";
+		const irishGridAlternative = "+proj=tmerc +lat_0=53.5 +lon_0=-8 +k=1.000035 +x_0=200000 +y_0=250000 +towgs84=482.5,-130.6,564.6,-1.042,-0.214,-0.631,8.15 +units=m +no_defs";
+
+		// Define the WGS84 projection
+		const wgs84 = "+proj=longlat +datum=WGS84 +no_defs";
+
+		var systemToUse = utm30N;
+		if (this.gridSystem == "BritishGrid") {
+			systemToUse = britishGrid;
+		}
+		else if (this.gridSystem == "IrishGrid") {
+			systemToUse = irishGrid;
+		}
+		else if (this.gridSystem == "AberdeenGrid") {
+			systemToUse = aberdeenGrid;
+		}
+		else if (this.gridSystem == "IrishGridAlt") {
+			systemToUse = irishGridAlternative;
+		}
+	
+		// Use proj4 to transform the coordinates, including height
+		const coords = proj4(systemToUse, wgs84, [x, y, z]);
+	
+		return coords[1] + ',' + coords[0]
 	}
 };

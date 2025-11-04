@@ -93,14 +93,22 @@
 					});
 					elTitle.toString = () => "About Annotations";
 
+					// let aAbout1 = new Potree.Annotation({
+					// 	position: [590043.63, 231490.79, 740.78],
+					// 	title: elTitle,
+					// 	cameraPosition: [590105.53, 231541.63, 782.05],
+					// 	cameraTarget: [590043.63, 231488.79, 740.78],
+					// 	description: `<ul><li>Click on the annotation label to move a predefined view.</li> 
+					// 	<li>Click on the icon to execute the specified action.</li>
+					// 	In this case, the action will bring you to another scene and point cloud.</ul>`
+					// });
+
 					let aAbout1 = new Potree.Annotation({
 						position: [590043.63, 231490.79, 740.78],
 						title: elTitle,
 						cameraPosition: [590105.53, 231541.63, 782.05],
 						cameraTarget: [590043.63, 231488.79, 740.78],
-						description: `<ul><li>Click on the annotation label to move a predefined view.</li> 
-						<li>Click on the icon to execute the specified action.</li>
-						In this case, the action will bring you to another scene and point cloud.</ul>`
+						description: `https://www.subterranean.ie/assets/images/image01.png`
 					});
 
 					sceneSG.annotations.add(aAbout1);

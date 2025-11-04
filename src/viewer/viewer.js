@@ -658,6 +658,14 @@ export class Viewer extends EventDispatcher{
 		return this.fov;
 	};
 
+	setCoordSystem(system) {
+		this.coordSystem = system;
+	};
+
+	getCoordSystem() {
+		return this.coordSystem;
+	};
+
 	disableAnnotations () {
 		this.scene.annotations.traverse(annotation => {
 			annotation.domElement.css('pointer-events', 'none');
@@ -1008,8 +1016,21 @@ export class Viewer extends EventDispatcher{
 		//Potree.loadProject(this, url);
 	}
 
+	loadSavedAnnotations(data) {
+		const json = JSON5.parse(data);
+		console.log("loadSavedAnnotations");
+		console.log(json);
+		//if(json.type === "Potree"){
+			Potree.loadSavedAnnotations(viewer, json);
+		//}
+	}
+
 	saveProject(){
 		return Potree.saveProject(this);
+	}
+
+	saveAnnotations() {
+		return Potree.saveAnnotations(this);
 	}
 	
 	loadSettingsFromURL(){
@@ -1317,6 +1338,57 @@ export class Viewer extends EventDispatcher{
 
 			
 		});
+
+		//let sidebarContainer = $('#potree_sidebar_container2');
+
+		// i18n.init({
+		// 	lng: 'en',
+		// 	resGetPath: Potree.resourcePath + '/lang/__lng__/__ns__.json',
+		// 	preload: ['en', 'fr', 'de', 'jp', 'se', 'es', 'zh', 'it', 'ca'],
+		// 	getAsync: true,
+		// 	debug: false
+		// }, function (t) {
+		// 	// Start translation once everything is loaded
+		// 	$('body').i18n();
+		// });
+
+		// $(() => {
+		// 	//initSidebar(this);
+		// 	let sidebar = new Sidebar(this);
+		// 	sidebar.init();
+
+		// 	this.sidebar = sidebar;
+
+		// 	//if (callback) {
+		// 	//	$(callback);
+		// 	//}
+
+		// 	let elProfile = $('<div>').load(new URL(Potree.scriptPath + '/profile.html').href, () => {
+		// 		$(document.body).append(elProfile.children());
+		// 		this.profileWindow = new ProfileWindow(this);
+		// 		this.profileWindowController = new ProfileWindowController(this);
+
+		// 		$('#profile_window').draggable({
+		// 			handle: $('#profile_titlebar'),
+		// 			containment: $(document.body)
+		// 		});
+		// 		$('#profile_window').resizable({
+		// 			containment: $(document.body),
+		// 			handles: 'n, e, s, w'
+		// 		});
+
+		// 		$(() => {
+		// 			this.guiLoaded = true;
+		// 			for (let task of this.guiLoadTasks) {
+		// 				task();
+		// 			}
+
+		// 		});
+		// 	});
+
+
+
+		// });
 
 		return this.promiseGuiLoaded();
 	}

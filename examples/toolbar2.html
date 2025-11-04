@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="description" content="">
+	<meta name="author" content="">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+	<title>Goodfriday Robotics Pointcloud Viewer</title>
+
+	<link rel="stylesheet" type="text/css" href="../build/potree/potree.css">
+	<link rel="stylesheet" type="text/css" href="../libs/jquery-ui/jquery-ui.min.css">
+	<link rel="stylesheet" type="text/css" href="../libs/openlayers3/ol.css">
+	<link rel="stylesheet" type="text/css" href="../libs/spectrum/spectrum.css">
+	<link rel="stylesheet" type="text/css" href="../libs/jstree/themes/mixed/style.css">
+	
+
+	<style>
+	
+	#potree_toolbar{
+		position: absolute; 
+		z-index: 10000; 
+		left: 100px; 
+		top: 0px;
+		background: black;
+		color: white;
+		padding: 0.3em 0.8em;
+		font-family: "system-ui";
+		border-radius: 0em 0em 0.3em 0.3em;
+		display: flex;
+	}
+
+	.potree_toolbar_label{
+		text-align: center;
+		font-size: smaller;
+		opacity: 0.9;
+	}
+
+	.potree_toolbar_separator{
+		background: white;
+		padding: 0px;
+		margin: 5px 10px;
+		width: 1px;
+	}
+	
+	.video-container {
+		  position: absolute;
+		  float:right;
+		  right: 20px;
+		  top: 20px;
+		  z-index: 1000;
+		}
+  
+		#corner-video {
+		 float:right;
+		  width: 450px;
+		  height: 253px;
+		  border-radius: 15px;
+		  overflow: hidden; 
+		}
+	</style>
+</head>
+
+<body>
+	<script src="../libs/jquery/jquery-3.1.1.min.js"></script>
+	<script src="../libs/spectrum/spectrum.js"></script>
+	<script src="../libs/jquery-ui/jquery-ui.min.js"></script>
+	<script src="../libs/other/BinaryHeap.js"></script>
+	<script src="../libs/tween/tween.min.js"></script>
+	<script src="../libs/d3/d3.js"></script>
+	<script src="../libs/proj4/proj4.js"></script>
+	<script src="../libs/openlayers3/ol.js"></script>
+	<script src="../libs/i18next/i18next.js"></script>
+	<script src="../libs/jstree/jstree.js"></script>
+	<script src="../build/potree/potree.js"></script>
+	<script src="../libs/plasio/js/laslaz.js"></script>
+	<script src='../libs/sql.js/sql-wasm.js'></script>
+	<script src='../libs/geopackage/geopackage.js'></script>
+
+	<div class="potree_container" style="position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; ">
+		<div id="potree_render_area">
+			<div id="potree_toolbar" style="margin: auto; background-color:	var(--bg-color);"></div>
+		</div>
+		<div id="potree_sidebar_container"> </div>
+	</div>
+
+	<div class="video-container" style="display: block;">
+		<iframe id="corner-video" src="" allow="autoplay" frameborder="0" allowfullscreen></iframe>
+	</div>
+
+	<div class="watermark_image">
+        <img src="/assets/images/IMG_0176.PNG">
+    </div>
+	
+	<script type="module">
+
+	import * as THREE from "../libs/three.js/build/three.module.js";
+	
+		window.viewer = new Potree.Viewer(document.getElementById("potree_render_area"));
+		
+		viewer.setEDLEnabled(false);
+		viewer.setFOV(60);
+		viewer.setPointBudget(1_000_000);
+		viewer.loadSettingsFromURL();
+		viewer.setBackground("skybox");
+		
+		viewer.loadGUI(() => {
+			viewer.setLanguage('en');
+			$("#menu_tools").next().show();
+			//$("#menu_scene").next().show();
+			//viewer.toggleSidebar();
+		});
+
+		const elevationRange = [730, 790];
+		
+		Potree.loadPointCloud("../pointclouds/vol_total/cloud.js", "Sorvilier", e => {
+			const scene = viewer.scene;
+			const pointcloud = e.pointcloud;
+			
+			const material = pointcloud.material;
+			material.size = 1;
+			material.pointSizeType = Potree.PointSizeType.ADAPTIVE;
+			material.shape = Potree.PointShape.SQUARE;
+			material.elevationRange = elevationRange;
+			
+			scene.addPointCloud(pointcloud);
+			
+			scene.view.setView(
+				[590144.208, 231895.191, 1077.020],
+				[589800.000, 231432.852, 756.242],
+			);
+
+			//viewer.fitToScreen();
+		});
+
+	</script>
+
+	<script type="module">
+
+	import * as THREE from "../libs/three.js/build/three.module.js";
+	
+	// 1: define html of toolbar first 
+	// 2: then populate with content and actions 
+	//
+	// Following files can be used as references on how to add certain functionality to the toolbar:
+	// - sidebar.html
+	// - sidebar.js
+	// - PropertiesPanel.html and its dependencies (DistancePanel, ProfilePanel, ...)
+	// 
+
+	// HTML
+	const elToolbar = $("#potree_toolbar");
+	elToolbar.html(`
+		<span>
+			<div class="potree_toolbar_label">
+				Attribute
+			</div>
+			<div>
+				<img name="annotation_control" src="${Potree.resourcePath}/icons/annotation.svg" class="annotation-action-icon" style="width: 2em; height: auto;"/>
+			</div>
+		</span>
+
+		<span class="potree_toolbar_separator" />
+
+		<span>
+			<div class="potree_toolbar_label">
+				Navigation
+			</div>
+			<div>
+				<img name="left_view_control" src="${Potree.resourcePath}/icons/left.svg" class="annotation-action-icon" style="width: 2em; height: auto;"/>
+				<img name="right_view_control" src="${Potree.resourcePath}/icons/right.svg" class="annotation-action-icon" style="width: 2em; height: auto;"/>
+				<img name="front_view_control" src="${Potree.resourcePath}/icons/front.svg" class="annotation-action-icon" style="width: 2em; height: auto;"/>
+				<img name="back_view_control" src="${Potree.resourcePath}/icons/back.svg" class="annotation-action-icon" style="width: 2em; height: auto;"/>
+				<img name="top_view_control" src="${Potree.resourcePath}/icons/top.svg" class="annotation-action-icon" style="width: 2em; height: auto;"/>
+				<img name="bottom_view_control" src="${Potree.resourcePath}/icons/bottom.svg" class="annotation-action-icon" style="width: 2em; height: auto;"/>
+			</div>
+		</span>
+
+		<span class="potree_toolbar_separator" />
+
+		<span>
+			<div class="potree_toolbar_label">
+				Measurement
+			</div>
+			<div>
+				<img name="action_measure_point" src="${Potree.resourcePath}/icons/point.svg" class="annotation-action-icon" style="width: 2em; height: auto;"/>
+				<img name="action_measure_distance" src="${Potree.resourcePath}/icons/distance.svg" class="annotation-action-icon" style="width: 2em; height: auto;"/>
+				<img name="action_measure_height" src="${Potree.resourcePath}/icons/height.svg" class="annotation-action-icon" style="width: 2em; height: auto;"/>
+				<img name="action_measure_angle" src="${Potree.resourcePath}/icons/angle.png" class="annotation-action-icon" style="width: 2em; height: auto;"/>
+				<img name="action_measure_circle" src="${Potree.resourcePath}/icons/circle.svg" class="annotation-action-icon" style="width: 2em; height: auto;"/>
+			</div>
+		</span>
+	`);
+
+	// CONTENT & ACTIONS
+
+	{ // Attribute
+		elToolbar.find("img[name=annotation_control]").click( () => {
+			let annotation = viewer.annotationTool.startInsertion();
+			
+			let annotationsRoot = $("#jstree_scene").jstree().get_json("annotations");
+			let jsonNode = annotationsRoot.children.find(child => child.data.uuid === annotation.uuid);
+			$.jstree.reference(jsonNode.id).deselect_all();
+			$.jstree.reference(jsonNode.id).select_node(jsonNode.id);
+		});
+	}
+
+	{ // Navigation
+		elToolbar.find("img[name=left_view_control]").click( () => {
+			viewer.setLeftView();
+		});
+
+		elToolbar.find("img[name=right_view_control]").click( () => {
+			viewer.setRightView();
+		});
+
+		elToolbar.find("img[name=front_view_control]").click( () => {
+			viewer.setFrontView();
+		});
+
+		elToolbar.find("img[name=back_view_control]").click( () => {
+			viewer.setBackView();
+		});
+
+		elToolbar.find("img[name=top_view_control]").click( () => {
+			viewer.setTopView();
+		});
+
+		elToolbar.find("img[name=bottom_view_control]").click( () => {
+			viewer.setBottomView();
+		});
+	}
+
+	{ // MEASURE
+		elToolbar.find("img[name=action_measure_point]").click( () => {
+			const measurement = viewer.measuringTool.startInsertion({
+				showDistances: false,
+				showAngles: false,
+				showCoordinates: true,
+				showArea: false,
+				closed: true,
+				maxMarkers: 1,
+				name: 'Point'
+			});
+		});
+
+		elToolbar.find("img[name=action_measure_distance]").click( () => {
+			const measurement = viewer.measuringTool.startInsertion({
+				showDistances: true,
+				showArea: false,
+				closed: false,
+				name: 'Distance'
+			});
+		});
+
+		elToolbar.find("img[name=action_measure_height]").click( () => {
+				let measurement = this.measuringTool.startInsertion({
+					showDistances: false,
+					showHeight: true,
+					showArea: false,
+					closed: false,
+					maxMarkers: 2,
+					name: 'Height'});
+
+				let measurementsRoot = $("#jstree_scene").jstree().get_json("measurements");
+				let jsonNode = measurementsRoot.children.find(child => child.data.uuid === measurement.uuid);
+				$.jstree.reference(jsonNode.id).deselect_all();
+				$.jstree.reference(jsonNode.id).select_node(jsonNode.id);
+		});
+
+		elToolbar.find("img[name=action_measure_angle]").click( () => {
+			let measurement = this.measuringTool.startInsertion({
+					showDistances: false,
+					showAngles: true,
+					showArea: false,
+					closed: true,
+					maxMarkers: 3,
+					name: 'Angle'});
+
+				let measurementsRoot = $("#jstree_scene").jstree().get_json("measurements");
+				let jsonNode = measurementsRoot.children.find(child => child.data.uuid === measurement.uuid);
+				$.jstree.reference(jsonNode.id).deselect_all();
+				$.jstree.reference(jsonNode.id).select_node(jsonNode.id);
+		});
+
+		elToolbar.find("img[name=action_measure_circle]").click( () => {
+			const measurement = viewer.measuringTool.startInsertion({
+				showDistances: false,
+				showHeight: false,
+				showArea: false,
+				showCircle: true,
+				showEdges: false,
+				closed: false,
+				maxMarkers: 3,
+				name: 'Circle'
+			});
+		});
+	}
+
+	
+	</script>
+	
+  </body>
+</html>

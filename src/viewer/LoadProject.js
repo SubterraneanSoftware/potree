@@ -314,6 +314,14 @@ function loadClassification(viewer, data){
 	viewer.setClassifications(classifications);
 }
 
+export function loadSavedAnnotations(viewer, data){
+	for(const measure of data.measurements){
+		loadMeasurement(viewer, measure);
+	}
+
+	loadAnnotations(viewer, data.annotations);
+}
+
 export async function loadProject(viewer, data){
 
 	if(data.type !== "Potree"){

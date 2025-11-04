@@ -270,3 +270,18 @@ export function saveProject(viewer) {
 
 	return data;
 }
+
+export function saveAnnotations(viewer) {
+	const scene = viewer.scene;
+
+	const data = {
+		type: "Potree",
+		measurements: scene.measurements.map(createMeasurementData),
+		volumes: scene.volumes.map(createVolumeData),
+		cameraAnimations: scene.cameraAnimations.map(createCameraAnimationData),
+		profiles: scene.profiles.map(createProfileData),
+		annotations: createAnnotationsData(viewer),
+	};
+
+	return data;
+}

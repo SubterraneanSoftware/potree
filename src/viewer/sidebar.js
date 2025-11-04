@@ -32,12 +32,7 @@ export class Sidebar{
 	}
 
 	createToolIcon(icon, title, callback){
-		let element = $(`
-			<img src="${icon}"
-				style="width: 32px; height: 32px"
-				class="button-icon"
-				data-i18n="${title}" />
-		`);
+		let element = $(`<img src="${icon}" style="width: 32px; height: 32px" class="button-icon" data-i18n="${title}" />`);
 
 		element.click(callback);
 
@@ -391,7 +386,7 @@ export class Sidebar{
 					"data": object
 				}, 
 				"last", false, false);
-			
+	
 			if(object.visible){
 				tree.jstree('check_node', nodeID);
 			}else{
@@ -704,10 +699,21 @@ export class Sidebar{
 			tree.jstree("delete_node", jsonNode.id);
 		};
 
+		
+		let onAnnotationRemoved = (e) => {
+
+			let annotationsRoot = $("#jstree_scene").jstree().get_json("annotations");
+			let jsonNode = annotationsRoot.children.find(child => child.data.uuid === e.annotation.uuid);
+			
+			tree.jstree("delete_node", jsonNode.id);
+
+		};
+
 		this.viewer.scene.addEventListener("measurement_removed", onMeasurementRemoved);
 		this.viewer.scene.addEventListener("volume_removed", onVolumeRemoved);
 		this.viewer.scene.addEventListener("polygon_clip_volume_removed", onPolygonClipVolumeRemoved);
 		this.viewer.scene.addEventListener("profile_removed", onProfileRemoved);
+		this.viewer.scene.addEventListener("annotation_removed", onAnnotationRemoved);
 
 		{
 			let annotationIcon = `${Potree.resourcePath}/icons/annotation.svg`;
@@ -1436,60 +1442,60 @@ export class Sidebar{
 		elNavigation.append("<br>");
 
 
-		elNavigation.append(this.createToolIcon(
-			Potree.resourcePath + "/icons/left.svg",
-			"[title]tt.left_view_control",
-			() => {this.viewer.setLeftView()}
-		));
+		// elNavigation.append(this.createToolIcon(
+		// 	Potree.resourcePath + "/icons/left.svg",
+		// 	"[title]tt.left_view_control",
+		// 	() => {this.viewer.setLeftView()}
+		// ));
 
-		elNavigation.append(this.createToolIcon(
-			Potree.resourcePath + "/icons/right.svg",
-			"[title]tt.right_view_control",
-			() => {this.viewer.setRightView()}
-		));
+		// elNavigation.append(this.createToolIcon(
+		// 	Potree.resourcePath + "/icons/right.svg",
+		// 	"[title]tt.right_view_control",
+		// 	() => {this.viewer.setRightView()}
+		// ));
 
-		elNavigation.append(this.createToolIcon(
-			Potree.resourcePath + "/icons/front.svg",
-			"[title]tt.front_view_control",
-			() => {this.viewer.setFrontView()}
-		));
+		// elNavigation.append(this.createToolIcon(
+		// 	Potree.resourcePath + "/icons/front.svg",
+		// 	"[title]tt.front_view_control",
+		// 	() => {this.viewer.setFrontView()}
+		// ));
 
-		elNavigation.append(this.createToolIcon(
-			Potree.resourcePath + "/icons/back.svg",
-			"[title]tt.back_view_control",
-			() => {this.viewer.setBackView()}
-		));
+		// elNavigation.append(this.createToolIcon(
+		// 	Potree.resourcePath + "/icons/back.svg",
+		// 	"[title]tt.back_view_control",
+		// 	() => {this.viewer.setBackView()}
+		// ));
 
-		elNavigation.append(this.createToolIcon(
-			Potree.resourcePath + "/icons/top.svg",
-			"[title]tt.top_view_control",
-			() => {this.viewer.setTopView()}
-		));
+		// elNavigation.append(this.createToolIcon(
+		// 	Potree.resourcePath + "/icons/top.svg",
+		// 	"[title]tt.top_view_control",
+		// 	() => {this.viewer.setTopView()}
+		// ));
 
-		elNavigation.append(this.createToolIcon(
-			Potree.resourcePath + "/icons/bottom.svg",
-			"[title]tt.bottom_view_control",
-			() => {this.viewer.setBottomView()}
-		));
-
-
+		// elNavigation.append(this.createToolIcon(
+		// 	Potree.resourcePath + "/icons/bottom.svg",
+		// 	"[title]tt.bottom_view_control",
+		// 	() => {this.viewer.setBottomView()}
+		// ));
 
 
 
-		let elCameraProjection = $(`
-			<selectgroup id="camera_projection_options">
-				<option id="camera_projection_options_perspective" value="PERSPECTIVE">Perspective</option>
-				<option id="camera_projection_options_orthigraphic" value="ORTHOGRAPHIC">Orthographic</option>
-			</selectgroup>
-		`);
-		elNavigation.append(elCameraProjection);
-		elCameraProjection.selectgroup({title: "Camera Projection"});
-		elCameraProjection.find("input").click( (e) => {
-			this.viewer.setCameraMode(CameraMode[e.target.value]);
-		});
-		let cameraMode = Object.keys(CameraMode)
-			.filter(key => CameraMode[key] === this.viewer.scene.cameraMode);
-		elCameraProjection.find(`input[value=${cameraMode}]`).trigger("click");
+
+
+		// let elCameraProjection = $(`
+		// 	<selectgroup id="camera_projection_options">
+		// 		<option id="camera_projection_options_perspective" value="PERSPECTIVE">Perspective</option>
+		// 		<option id="camera_projection_options_orthigraphic" value="ORTHOGRAPHIC">Orthographic</option>
+		// 	</selectgroup>
+		// `);
+		// elNavigation.append(elCameraProjection);
+		// elCameraProjection.selectgroup({title: "Camera Projection"});
+		// elCameraProjection.find("input").click( (e) => {
+		// 	this.viewer.setCameraMode(CameraMode[e.target.value]);
+		// });
+		// let cameraMode = Object.keys(CameraMode)
+		// 	.filter(key => CameraMode[key] === this.viewer.scene.cameraMode);
+		// elCameraProjection.find(`input[value=${cameraMode}]`).trigger("click");
 
 		let speedRange = new THREE.Vector2(1, 10 * 1000);
 

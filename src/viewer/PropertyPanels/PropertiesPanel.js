@@ -57,6 +57,7 @@ export class PropertiesPanel{
 		}else if(object instanceof THREE.Camera){
 			this.setCamera(object);
 		}else if(object instanceof Annotation){
+			object.gridSystem = this.viewer.getCoordSystem();
 			this.setAnnotation(object);
 		}else if(object instanceof CameraAnimation){
 			this.setCameraAnimation(object);
